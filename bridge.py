@@ -5,6 +5,11 @@ import zmq
 
 from track_io import load_track
 
+OPENRCT_TRACK_FOLDER = '/Applications/Games/RollerCoaster Tycoon 2.app/Contents/Resources/drive_c/Program Files/RollerCoaster Tycoon 2/Tracks/'
+OPENRCT_BUILD_DIRECTORY = '/Users/jcampbell/Projects/Games/OpenRCT2/build/'
+EXPORTX_PATH = OPENRCT_BUILD_DIRECTORY + 'export.td6.td9'
+input("Make sure to update the paths, e.g., " + OPENRCT_BUILD_DIRECTORY)
+
 class Bridge:
     def __init__(self):
         self.context = zmq.Context()
@@ -29,7 +34,8 @@ class Bridge:
     
         start_time = time.time()
         #print(f"Sending request")
-        self.send_socket.send_string(track_path)
+        message = '{"action": "load_track", "path": "' + track_path + '"}'
+        self.send_socket.send_string(message)
     
         tested_track = None
         #print("Waiting for reply...")
@@ -40,8 +46,8 @@ class Bridge:
                 #print("got message") #" ",work_receiver.recv(zmq.NOBLOCK))
         else:
             print("TIMEOUT")
-            if os.path.exists("/Users/jcampbell/Projects/Games/OpenRCT2/build/tracknet/exportX.td9"):
-                os.rename("/Users/jcampbell/Projects/Games/OpenRCT2/build/tracknet/exportX.td9", fail_path)
+            if os.path.exists(EXPORTX_PATH):
+                os.rename(EXPORTX_PATH, fail_path)
             os.rename(track_path, fail_path)
             return None, time.time() - start_time
 
@@ -49,17 +55,46 @@ class Bridge:
         #print(f"Received reply {message} ]")
         end_time = time.time()
 
-        path = "/Users/jcampbell/Projects/Games/OpenRCT2/build/tracknet/exportX.td9"
+        path = EXPORTX_PATH
         while not os.path.exists(path):
             pass    
         if os.path.exists(path):
             tested_track = load_track(path)
             #os.remove(path)
     
-        os.rename("/Users/jcampbell/Projects/Games/OpenRCT2/build/tracknet/exportX.td9", success_path)
+        os.rename(EXPORTX_PATH, success_path)
         
         return tested_track, end_time - start_time
-
+    
+    def send_track_for_conversion(self, track_path, success_path):
+        assert self.bound
+        print(track_path)
+    
+        message = '{"action": "load_track", "path": "' + track_path + '"}'
+        self.send_socket.send_string(message)
+        
+        track_name = track_path.split('/')[-1]
+        td9_path = OPENRCT_BUILD_DIRECTORY + '/export_' + track_name
+        print(td9_path)
+    
+        while not os.path.exists(td9_path):
+            pass
+        os.rename(td9_path, success_path)
+    
+    def capture_partial_track(self, track_path, capture_path):
+        assert self.bound
+        print(track_path)
+    
+        message = '{"action": "load_track", "path": "' + track_path + '"}'
+        self.send_socket.send_string(message)
+        
+        track_name = track_path.split('/')[-1]
+        td9_path = OPENRCT_BUILD_DIRECTORY + '/export_' + track_name
+        print(td9_path)
+    
+        time.sleep(2)
+        self.capture_rct_window_to_file(capture_path)
+    
     def capture_rct_window_to_file(self, filename):
         window_name = 'OpenRCT2'
         window_list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)

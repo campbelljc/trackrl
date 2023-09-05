@@ -123,8 +123,6 @@ class BaseCoasterEnv(gym.Env):
                 self.num -= 1
                 
                 self.valid_actions = self.prev_valid_actions[tuple(self.track_elements)]
-                if hasattr(self, 'probs'):
-                    self.probs = self.prev_probs[tuple(self.track_elements[-self.window_size:])]
                 
                 pieces_tup = tuple(self.pieces)
                 self.valid_actions[last_action] = 0

@@ -114,8 +114,6 @@ def get_upward_starting_tracks(tracks):
     return upward_tracks
 
 def get_sequences(tracks):
-    from collisions import CollisionData, get_collision_for_segment
-    
     seq_size = 10
     
     seqs = []
@@ -358,6 +356,7 @@ def load_tracks(min_track_len=0, max_track_len=math.inf, check_collisions=False,
     
     if track_dir is None:
         track_dir = "/Users/jcampbell/Projects/Games/OpenRCT2/build/tracknet/exported_tracks/exported_no_scenery"
+        input("Note - dataset is not (publicly) available.")
     files = sorted(glob(f"{track_dir}/*.td9"))
     print("Total TD9s in directory:", len(files))
     files = tqdm(list(enumerate(files)))
